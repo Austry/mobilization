@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Mobilization</string>
+    <string name="network_error">Сетевая ошибка!</string>
+    <string name="logo_description">Лого артиста</string>
+    <string name="artist_description_label">Биография</string>
+    <string name="main_activity_label">Исполнители</string>
+    <string name="network_unavailable_error">Нет соединения с сетью!</string>
+    <string name="mapping_error">Ошибка! Попробуйте позже!</string>
+</resources>
