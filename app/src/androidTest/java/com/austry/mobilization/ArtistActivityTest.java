@@ -24,7 +24,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static java.util.Arrays.asList;
 
 @RunWith(AndroidJUnit4.class)
-public class ApplicationTest {
+public class ArtistActivityTest {
 
     @Rule
     public ActivityTestRule<ArtistActivity> mActivityRule = new ActivityTestRule<>(
