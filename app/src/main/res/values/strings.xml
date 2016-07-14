@@ -6,6 +6,16 @@
     <string name="main_activity_label">Исполнители</string>
     <string name="network_unavailable_error">Нет соединения с сетью!</string>
     <string name="mapping_error">Ошибка! Попробуйте позже!</string>
+    <string name="menu_item_about_title">О программе</string>
+    <string name="menu_item_feedback_title">Обратная связь</string>
+
+    <string name="about_fragment_title">О программе</string>
+    <string name="about_main_text">Приложение создано в рамках проекта \'Мобилизация\'!</string>
+    <string name="about_author">Автор : Илья Засимов</string>
+    <string name="feedback_email">iliazasimov@yandex.ru</string>
+    <string name="feedback_email_subject">Отзыв</string>
+    <string name="feedback_email_body">Крутотень!</string>
+    <string name="feedback_chooser_title">Отправить письмо...</string>
 
     <plurals name="tracks">
         <item quantity="zero">нет песен</item>

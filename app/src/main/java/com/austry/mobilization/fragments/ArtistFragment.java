@@ -44,6 +44,7 @@ public class ArtistFragment extends Fragment {
         tvAlbums.setText(getPlural(R.plurals.albums, artist.getAlbums()));
         tvTracks.setText(getPlural(R.plurals.tracks, artist.getTracks()));
         tvDescription.setText(artist.getDescription());
+        getActivity().setTitle(artist.getName());
     }
 
     private String getPlural(int pluralId, int number) {
