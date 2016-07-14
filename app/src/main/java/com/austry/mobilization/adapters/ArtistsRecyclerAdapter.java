@@ -17,9 +17,7 @@ import com.austry.mobilization.net.VolleySingleton;
 
 import java.util.List;
 
-import static com.austry.mobilization.utils.StringUtils.getAlbums;
 import static com.austry.mobilization.utils.StringUtils.getGenres;
-import static com.austry.mobilization.utils.StringUtils.getTracks;
 
 public class ArtistsRecyclerAdapter extends RecyclerView.Adapter<ArtistsRecyclerAdapter.ArtistViewHolder> {
 
@@ -34,7 +32,7 @@ public class ArtistsRecyclerAdapter extends RecyclerView.Adapter<ArtistsRecycler
     @Override
     public ArtistViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                                  .inflate(R.layout.list_item_artist, parent, false);
+                .inflate(R.layout.list_item_artist, parent, false);
         return new ArtistViewHolder(view);
     }
 
@@ -45,9 +43,12 @@ public class ArtistsRecyclerAdapter extends RecyclerView.Adapter<ArtistsRecycler
         holder.tvGenres.setText(getGenres(currentArtist.getGenres()));
         holder.ivCover.setImageUrl(currentArtist.getCover().getSmall(), VolleySingleton.getInstance().getImageLoader());
 
+        int albums = currentArtist.getAlbums(),
+                tracks = currentArtist.getTracks();
+
         holder.tvAlbumsInfo.setText(String.format("%s , %s",
-                getAlbums(currentArtist.getAlbums()),
-                getTracks(currentArtist.getTracks())));
+                context.getResources().getQuantityString(R.plurals.albums, albums, albums),
+                context.getResources().getQuantityString(R.plurals.tracks, tracks, tracks)));
 
         holder.tvName.setText(currentArtist.getName());
 
