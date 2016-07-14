@@ -1,7 +1,7 @@
 package com.austry.mobilization.adapters;
 
-import android.content.Context;
-import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import com.android.volley.toolbox.NetworkImageView;
 import com.austry.mobilization.R;
-import com.austry.mobilization.activities.ArtistActivity;
 import com.austry.mobilization.fragments.ArtistFragment;
 import com.austry.mobilization.model.Artist;
 import com.austry.mobilization.net.VolleySingleton;
@@ -21,12 +20,13 @@ import static com.austry.mobilization.utils.StringUtils.getGenres;
 
 public class ArtistsRecyclerAdapter extends RecyclerView.Adapter<ArtistsRecyclerAdapter.ArtistViewHolder> {
 
+    public static final String ARTIST_FRAGMENT_NAME = "artist_fragment";
     private List<Artist> data;
-    private Context context;
+    private FragmentActivity activity;
 
-    public ArtistsRecyclerAdapter(List<Artist> data, Context context) {
+    public ArtistsRecyclerAdapter(List<Artist> data, FragmentActivity context) {
         this.data = data;
-        this.context = context;
+        this.activity = context;
     }
 
     @Override
@@ -47,19 +47,12 @@ public class ArtistsRecyclerAdapter extends RecyclerView.Adapter<ArtistsRecycler
                 tracks = currentArtist.getTracks();
 
         holder.tvAlbumsInfo.setText(String.format("%s , %s",
-                context.getResources().getQuantityString(R.plurals.albums, albums, albums),
-                context.getResources().getQuantityString(R.plurals.tracks, tracks, tracks)));
+                activity.getResources().getQuantityString(R.plurals.albums, albums, albums),
+                activity.getResources().getQuantityString(R.plurals.tracks, tracks, tracks)));
 
         holder.tvName.setText(currentArtist.getName());
 
-        holder.root.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent artistActivityIntent = new Intent(context, ArtistActivity.class);
-                artistActivityIntent.putExtra(ArtistFragment.EXTRA_ARTIST, data.get(holder.getAdapterPosition()));
-                context.startActivity(artistActivityIntent);
-            }
-        });
+        holder.root.setOnClickListener((v) -> elementClick(holder));
     }
 
     @Override
@@ -85,5 +78,22 @@ public class ArtistsRecyclerAdapter extends RecyclerView.Adapter<ArtistsRecycler
             ivCover.setDefaultImageResId(R.drawable.ic_person_black_48dp);
             ivCover.setErrorImageResId(R.drawable.ic_error_outline_black_48dp);
         }
+    }
+
+    private void elementClick(ArtistViewHolder holder){
+
+        Artist artist = data.get(holder.getAdapterPosition());
+
+        ArtistFragment artistFragment = new ArtistFragment();
+
+        Bundle args = new Bundle();
+        args.putSerializable(ArtistFragment.EXTRA_ARTIST, artist);
+        artistFragment.setArguments(args);
+
+        activity.getSupportFragmentManager().beginTransaction()
+                .addToBackStack(ARTIST_FRAGMENT_NAME)
+                .replace(R.id.flFragmentContainer, artistFragment , ARTIST_FRAGMENT_NAME)
+                .commit();
+        activity.setTitle(artist.getName());
     }
 }

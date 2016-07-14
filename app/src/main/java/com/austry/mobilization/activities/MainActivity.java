@@ -16,11 +16,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(savedInstanceState == null){
-            FragmentTransaction ft = getFragmentManager().beginTransaction();
-            ft.add(R.id.flFragmentContainer,new AllArtistsFragment(), MAIN_FRAGMENT_NAME);
-            ft.commit();
+        if (savedInstanceState == null) {
+
+            getSupportFragmentManager().beginTransaction()
+                    .addToBackStack(null)
+                    .add(R.id.flFragmentContainer, new AllArtistsFragment())
+                    .commit();
         }
 
     }
+
+
 }

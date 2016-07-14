@@ -1,11 +1,11 @@
 package com.austry.mobilization.fragments;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -28,7 +28,6 @@ import com.austry.mobilization.net.VolleySingleton;
 import java.util.List;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
-import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 
 
 public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback {
@@ -44,6 +43,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View fragmentView = inflater.inflate(R.layout.fragment_all_artists, container, false);
         initViews(fragmentView);
+        getActivity().setTitle(getString(R.string.app_name));
         setRefreshState(true);
         loadData();
         return fragmentView;
@@ -56,12 +56,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         rvArtists.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         srlRoot.setColorSchemeResources(R.color.colorAccent);
-        srlRoot.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadData();
-            }
-        });
+        srlRoot.setOnRefreshListener(this::loadData);
     }
 
     private void loadData() {
@@ -100,12 +95,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
     }
 
     private void setRefreshState(final boolean state) {
-        srlRoot.post(new Runnable() {
-            @Override
-            public void run() {
-                srlRoot.setRefreshing(state);
-            }
-        });
+        srlRoot.post(() -> srlRoot.setRefreshing(state));
     }
 
 }
