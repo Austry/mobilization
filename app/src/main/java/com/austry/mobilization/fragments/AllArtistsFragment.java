@@ -64,7 +64,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
             final StringRequest request =
                     new UTF8StringRequest(Request.Method.GET, ARTISTS_DATA_URL,
                             new ArtistsResponseListener(this), new ArtistsErrorListener(this));
-
+            request.setShouldCache(true);
             VolleySingleton.getInstance().getRequestQueue().add(request);
         } else {
             error(getActivity().getString(R.string.network_unavailable_error));
