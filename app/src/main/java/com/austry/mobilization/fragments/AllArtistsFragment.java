@@ -14,7 +14,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.android.volley.Cache;
 import com.android.volley.Request;
+import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.StringRequest;
 import com.austry.mobilization.R;
 import com.austry.mobilization.adapters.ArtistsRecyclerAdapter;
@@ -45,7 +47,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         initViews(fragmentView);
         getActivity().setTitle(getString(R.string.app_name));
         setRefreshState(true);
-        loadData();
+        loadData(false);
         return fragmentView;
     }
 
@@ -56,10 +58,13 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         rvArtists.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         srlRoot.setColorSchemeResources(R.color.colorAccent);
-        srlRoot.setOnRefreshListener(this::loadData);
+        srlRoot.setOnRefreshListener(() -> loadData(true));
     }
 
-    private void loadData() {
+    private void loadData(boolean refreshCache) {
+        if(refreshCache){
+            VolleySingleton.getInstance().getRequestQueue().getCache().remove(ARTISTS_DATA_URL);
+        }
         if (isOnline()) {
             final StringRequest request =
                     new UTF8StringRequest(Request.Method.GET, ARTISTS_DATA_URL,

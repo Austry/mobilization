@@ -4,9 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -24,10 +22,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         if (savedInstanceState == null) {
-            showFragment(new AllArtistsFragment());
+            addAllArtistsFragment();
         }
 
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menuItemAbout:
-                showFragment(new AboutFragment());
+                showAboutFragment();
                 break;
             case R.id.menuItemFeedback:
                 sendFeedbackEmailIntent();
@@ -56,16 +56,21 @@ public class MainActivity extends AppCompatActivity {
         startActivity(Intent.createChooser(emailIntent, getString(R.string.feedback_chooser_title)));
     }
 
-    private void showFragment(Fragment fragment) {
-
+    private void showAboutFragment() {
+        Fragment fragment = new AboutFragment();
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.flFragmentContainer);
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-
-        if(currentFragment == null || !currentFragment.getClass().equals(fragment.getClass())) {
-            ft.addToBackStack(fragment.getClass().getName())
-                    .replace(R.id.flFragmentContainer, fragment, fragment.getClass().getName());
+        if (currentFragment == null || !currentFragment.getClass().equals(fragment.getClass())) {
+            getSupportFragmentManager().beginTransaction()
+                    .addToBackStack(fragment.getClass().getName())
+                    .replace(R.id.flFragmentContainer, fragment, fragment.getClass().getName())
+                    .commit();
         }
-        ft.commit();
+    }
 
+    private void addAllArtistsFragment() {
+        Fragment fragment = new AllArtistsFragment();
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.flFragmentContainer, fragment, fragment.getClass().getName())
+                .commit();
     }
 }
