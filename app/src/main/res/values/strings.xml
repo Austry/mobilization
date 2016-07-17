@@ -16,6 +16,11 @@
     <string name="feedback_email_subject">Отзыв</string>
     <string name="feedback_email_body">Крутотень!</string>
     <string name="feedback_chooser_title">Отправить письмо...</string>
+    <string name="notification_title">Let\'s checkout the music!</string>
+    <string name="notification_image">Notification image</string>
+    <string name="yadnex_radio_button">Yadnex radio button</string>
+    <string name="yandex_music_button">Yandex music button</string>
+    <string name="notification_ticker">Time to rock!</string>
 
     <plurals name="tracks">
         <item quantity="zero">нет песен</item>

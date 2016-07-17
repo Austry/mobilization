@@ -1,6 +1,7 @@
 package com.austry.mobilization.activities;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -11,9 +12,11 @@ import android.view.MenuItem;
 import com.austry.mobilization.R;
 import com.austry.mobilization.fragments.AboutFragment;
 import com.austry.mobilization.fragments.AllArtistsFragment;
+import com.austry.mobilization.receivers.HeadsetReceiver;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final HeadsetReceiver headsetReceiver = new HeadsetReceiver();
     private String LOG_TAG = MainActivity.class.getName();
 
     @Override
@@ -27,7 +30,18 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(headsetReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(headsetReceiver);
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
