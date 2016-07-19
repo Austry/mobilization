@@ -1,25 +1,19 @@
 package com.austry.mobilization.net;
+import android.content.Context;
+
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
 import com.austry.mobilization.Application;
 
 
-public class VolleySingleton {
-    private static VolleySingleton mInstance = null;
+public class VolleyInstance {
     private RequestQueue requestQueue;
     private ImageLoader imageLoader;
 
-    private VolleySingleton(){
-        requestQueue = Volley.newRequestQueue(Application.getContext());
+    public VolleyInstance(Context context){
+        requestQueue = Volley.newRequestQueue(context);
         imageLoader = new ImageLoader(this.requestQueue, new DiskCachedImageLoader());
-    }
-
-    public static VolleySingleton getInstance(){
-        if(mInstance == null){
-            mInstance = new VolleySingleton();
-        }
-        return mInstance;
     }
 
     public RequestQueue getRequestQueue(){

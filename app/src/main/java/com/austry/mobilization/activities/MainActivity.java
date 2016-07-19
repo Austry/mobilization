@@ -5,6 +5,7 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,17 +13,21 @@ import android.view.MenuItem;
 import com.austry.mobilization.R;
 import com.austry.mobilization.fragments.AboutFragment;
 import com.austry.mobilization.fragments.AllArtistsFragment;
+import com.austry.mobilization.net.VolleyInstance;
 import com.austry.mobilization.receivers.HeadsetReceiver;
 
 public class MainActivity extends AppCompatActivity {
 
     private final HeadsetReceiver headsetReceiver = new HeadsetReceiver();
-    private String LOG_TAG = MainActivity.class.getName();
+    private final String LOG_TAG = MainActivity.class.getName();
+
+    private FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        fragmentManager = getSupportFragmentManager();
 
         if (savedInstanceState == null) {
             addAllArtistsFragment();
@@ -72,9 +77,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAboutFragment() {
         Fragment fragment = new AboutFragment();
-        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.flFragmentContainer);
+        Fragment currentFragment = fragmentManager.findFragmentById(R.id.flFragmentContainer);
         if (currentFragment == null || !currentFragment.getClass().equals(fragment.getClass())) {
-            getSupportFragmentManager().beginTransaction()
+            fragmentManager.beginTransaction()
                     .addToBackStack(fragment.getClass().getName())
                     .replace(R.id.flFragmentContainer, fragment, fragment.getClass().getName())
                     .commit();
@@ -82,8 +87,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addAllArtistsFragment() {
+
         Fragment fragment = new AllArtistsFragment();
-        getSupportFragmentManager().beginTransaction()
+        fragmentManager.beginTransaction()
                 .add(R.id.flFragmentContainer, fragment, fragment.getClass().getName())
                 .commit();
     }
