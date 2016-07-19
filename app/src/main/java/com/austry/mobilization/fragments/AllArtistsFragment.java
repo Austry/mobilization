@@ -77,6 +77,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
                             new ArtistsResponseListener(this), new ArtistsErrorListener(this));
             request.setShouldCache(true);
             networkRequestsQueue.add(request);
+
         } else {
             error(getActivity().getString(R.string.network_unavailable_error));
         }
@@ -113,16 +114,18 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
 
     @Override
     public void elementClick(Artist artist) {
+        if(!srlRoot.isRefreshing()) {
 
-        ArtistFragment artistFragment = new ArtistFragment();
+            ArtistFragment artistFragment = new ArtistFragment();
 
-        Bundle args = new Bundle();
-        args.putSerializable(ArtistFragment.EXTRA_ARTIST, artist);
-        artistFragment.setArguments(args);
+            Bundle args = new Bundle();
+            args.putSerializable(ArtistFragment.EXTRA_ARTIST, artist);
+            artistFragment.setArguments(args);
 
-        getFragmentManager().beginTransaction()
-                .addToBackStack(ARTIST_FRAGMENT_NAME)
-                .replace(R.id.flFragmentContainer, artistFragment, ARTIST_FRAGMENT_NAME)
-                .commit();
+            getFragmentManager().beginTransaction()
+                    .addToBackStack(ARTIST_FRAGMENT_NAME)
+                    .replace(R.id.flFragmentContainer, artistFragment, ARTIST_FRAGMENT_NAME)
+                    .commit();
+        }
     }
 }
