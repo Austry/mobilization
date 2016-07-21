@@ -14,7 +14,7 @@ import android.widget.RemoteViews;
 import com.austry.mobilization.R;
 
 public class HeadsetReceiver extends BroadcastReceiver {
-    private static final String LOG_TAG = "HeadsetReceiver";
+    private static final String LOG_TAG = HeadsetReceiver.class.getName();
 
     private static final String MUSIC_PACKAGE = "ru.yandex.music";
     private static final String RADIO_PACKAGE = "ru.yandex.radio";

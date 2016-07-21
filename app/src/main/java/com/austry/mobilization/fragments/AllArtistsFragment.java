@@ -37,7 +37,7 @@ import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback, ArtistClickCallback {
 
     private static final String ARTIST_FRAGMENT_NAME = "artist_fragment";
-    private static final String LOG_TAG = "AllArtistsFragment";
+    private static final String LOG_TAG = AllArtistsFragment.class.getName();
     private static final String ARTISTS_DATA_URL = "http://download.cdn.yandex.net/mobilization-2016/artists.json";
 
     private RecyclerView rvArtists;
