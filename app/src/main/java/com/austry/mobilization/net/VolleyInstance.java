@@ -13,7 +13,7 @@ public class VolleyInstance {
 
     public VolleyInstance(Context context){
         requestQueue = Volley.newRequestQueue(context);
-        imageLoader = new ImageLoader(this.requestQueue, new DiskCachedImageLoader());
+        imageLoader = new ImageLoader(this.requestQueue, new DiskCachedImageLoader(context.getCacheDir()));
     }
 
     public RequestQueue getRequestQueue(){

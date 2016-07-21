@@ -6,7 +6,7 @@ import com.austry.mobilization.net.VolleyInstance;
 
 public class Application extends android.app.Application{
 
-    private static Application instance;
+    private Application instance;
     private VolleyInstance volleyInstance;
 
 
@@ -14,7 +14,7 @@ public class Application extends android.app.Application{
         instance = this;
     }
 
-    public static Context getContext() {
+    public Context getContext() {
         return instance;
     }
 
@@ -23,6 +23,10 @@ public class Application extends android.app.Application{
             volleyInstance = new VolleyInstance(this);
         }
         return volleyInstance;
+    }
+
+    public static Application from(Context context){
+        return (Application) context.getApplicationContext();
     }
 
 }

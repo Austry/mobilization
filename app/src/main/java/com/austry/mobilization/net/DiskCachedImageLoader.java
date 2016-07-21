@@ -8,6 +8,7 @@ import com.android.volley.toolbox.ImageLoader;
 import com.austry.mobilization.Application;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.*;
@@ -17,8 +18,11 @@ public class DiskCachedImageLoader implements ImageLoader.ImageCache{
     private static final int COMPRESS_QUALITY = 100;
 
     private final ExecutorService executor = newFixedThreadPool(10);
-    private final DiskBasedCache cache =
-            new DiskBasedCache(Application.getContext().getCacheDir(), MAX_CACHE_SIZE_IN_BYTES);
+    private final DiskBasedCache cache;
+
+    public DiskCachedImageLoader(File cacheDir){
+        cache = new DiskBasedCache(cacheDir, MAX_CACHE_SIZE_IN_BYTES);
+    }
 
     @Override
     public void putBitmap(String url, Bitmap bitmap) {

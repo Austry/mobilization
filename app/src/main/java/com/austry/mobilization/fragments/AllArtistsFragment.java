@@ -1,6 +1,7 @@
 package com.austry.mobilization.fragments;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -42,13 +43,14 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
     private RecyclerView rvArtists;
     private SwipeRefreshLayout srlRoot;
     private RequestQueue networkRequestsQueue;
+    private Resources resources;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        networkRequestsQueue = ((Application) getActivity().getApplication()).getVolley().getRequestQueue();
-
+        networkRequestsQueue = Application.from(getContext()).getVolley().getRequestQueue();
+        resources = getResources();
         View fragmentView = inflater.inflate(R.layout.fragment_all_artists, container, false);
         initViews(fragmentView);
         getActivity().setTitle(getString(R.string.app_name));
@@ -74,7 +76,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         if (isOnline()) {
             final StringRequest request =
                     new UTF8StringRequest(Request.Method.GET, ARTISTS_DATA_URL,
-                            new ArtistsResponseListener(this), new ArtistsErrorListener(this));
+                            new ArtistsResponseListener(this, resources), new ArtistsErrorListener(this, resources));
             request.setShouldCache(true);
             networkRequestsQueue.add(request);
 
@@ -87,7 +89,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
     public void success(List<Artist> artists) {
         setRefreshState(false);
         ImageLoader loader = ((Application) getActivity().getApplication()).getVolley().getImageLoader();
-        ArtistsRecyclerAdapter adapter = new ArtistsRecyclerAdapter(artists, getResources(), loader, this);
+        ArtistsRecyclerAdapter adapter = new ArtistsRecyclerAdapter(artists, resources, loader, this);
         RecyclerView.Adapter animatedAdapter = new AlphaInAnimationAdapter(adapter);
         rvArtists.setAdapter(animatedAdapter);
     }
