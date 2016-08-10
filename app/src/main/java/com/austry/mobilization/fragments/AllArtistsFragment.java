@@ -1,10 +1,9 @@
 package com.austry.mobilization.fragments;
 
-import android.content.Context;
 import android.content.res.Resources;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -15,47 +14,53 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.StringRequest;
 import com.austry.mobilization.Application;
 import com.austry.mobilization.R;
 import com.austry.mobilization.adapters.ArtistClickCallback;
 import com.austry.mobilization.adapters.ArtistsRecyclerAdapter;
 import com.austry.mobilization.model.Artist;
-import com.austry.mobilization.net.ArtistsErrorListener;
+import com.austry.mobilization.model.ArtistsProviderContract;
+import com.austry.mobilization.model.Cover;
 import com.austry.mobilization.net.ArtistsResponseCallback;
-import com.austry.mobilization.net.ArtistsResponseListener;
-import com.austry.mobilization.net.UTF8StringRequest;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
+
+import static java.util.Arrays.asList;
 
 
 public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback, ArtistClickCallback {
 
     private static final String ARTIST_FRAGMENT_NAME = "artist_fragment";
-    private static final String LOG_TAG = AllArtistsFragment.class.getName();
-    private static final String ARTISTS_DATA_URL = "http://download.cdn.yandex.net/mobilization-2016/artists.json";
+    private static final String TAG = AllArtistsFragment.class.getName();
 
     private RecyclerView rvArtists;
     private SwipeRefreshLayout srlRoot;
-    private RequestQueue networkRequestsQueue;
     private Resources resources;
+    private static final String[] COLUMNS_TO_REQUEST = {
+            ArtistsProviderContract.ID,
+            ArtistsProviderContract.NAME,
+            ArtistsProviderContract.DESCRIPTION,
+            ArtistsProviderContract.LINK,
+            ArtistsProviderContract.GENRES,
+            ArtistsProviderContract.ALBUM,
+            ArtistsProviderContract.TRACKS,
+            ArtistsProviderContract.URL_BIG,
+            ArtistsProviderContract.URL_SMALL
+    };
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        networkRequestsQueue = Application.from(getContext()).getVolley().getRequestQueue();
         resources = getResources();
         View fragmentView = inflater.inflate(R.layout.fragment_all_artists, container, false);
         initViews(fragmentView);
         getActivity().setTitle(getString(R.string.app_name));
         setRefreshState(true);
-        loadData(false);
+        loadData();
         return fragmentView;
     }
 
@@ -66,23 +71,40 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         rvArtists.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         srlRoot.setColorSchemeResources(R.color.colorAccent);
-        srlRoot.setOnRefreshListener(() -> loadData(true));
+        srlRoot.setOnRefreshListener(this::loadData);
     }
 
-    private void loadData(boolean refreshCache) {
-        if (refreshCache) {
-            networkRequestsQueue.getCache().remove(ARTISTS_DATA_URL);
+    private void loadData() {
+        Cursor cursor = getActivity().getContentResolver().query(ArtistsProviderContract.CONTENT_URI,
+                COLUMNS_TO_REQUEST, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            success(parseArtists(cursor));
+        }else{
+            error(resources.getString(R.string.error_msg_no_provider_found));
         }
-        if (isOnline()) {
-            final StringRequest request =
-                    new UTF8StringRequest(Request.Method.GET, ARTISTS_DATA_URL,
-                            new ArtistsResponseListener(this, resources), new ArtistsErrorListener(this, resources));
-            request.setShouldCache(true);
-            networkRequestsQueue.add(request);
+    }
 
-        } else {
-            error(getActivity().getString(R.string.network_unavailable_error));
-        }
+    private List<Artist> parseArtists(@NonNull Cursor cursor) {
+        List<Artist> result = new LinkedList<>();
+        do {
+            Artist newArtist = new Artist();
+            newArtist.setId(cursor.getLong(0));
+            newArtist.setName(cursor.getString(1));
+            newArtist.setDescription(cursor.getString(2));
+            newArtist.setLink(cursor.getString(3));
+            String genres = cursor.getString(4);
+            newArtist.setGenres(asList(genres.split(",")));
+            newArtist.setAlbums(cursor.getInt(5));
+            newArtist.setTracks(cursor.getInt(6));
+            Cover cover =new Cover();
+            cover.setBig(cursor.getString(7));
+            cover.setSmall(cursor.getString(8));
+            newArtist.setCover(cover);
+
+            result.add(newArtist);
+        } while (cursor.moveToNext());
+        cursor.close();
+        return result;
     }
 
     @Override
@@ -99,15 +121,6 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
     public void error(String errorMessage) {
         setRefreshState(false);
         Toast.makeText(this.getActivity(), errorMessage, Toast.LENGTH_SHORT).show();
-    }
-
-    //провеняет соединение с сетью
-    public boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-
-        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     private void setRefreshState(final boolean state) {

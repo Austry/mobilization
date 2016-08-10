@@ -2,24 +2,25 @@ package com.austry.mobilization.activities;
 
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import com.austry.mobilization.R;
 import com.austry.mobilization.fragments.AboutFragment;
 import com.austry.mobilization.fragments.AllArtistsFragment;
-import com.austry.mobilization.net.VolleyInstance;
 import com.austry.mobilization.receivers.HeadsetReceiver;
 
 public class MainActivity extends AppCompatActivity {
 
     private final HeadsetReceiver headsetReceiver = new HeadsetReceiver();
-    private final String LOG_TAG = MainActivity.class.getName();
+    private final String TAG = MainActivity.class.getName();
 
     private FragmentManager fragmentManager;
 
