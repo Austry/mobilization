@@ -68,8 +68,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         getActivity().setTitle(getString(R.string.app_name));
         setRefreshState(true);
         if(savedInstanceState == null) {
-            getLoaderManager()
-                    .initLoader(LOADER_ID, null, this).forceLoad();
+            initLoader();
         }
         return fragmentView;
     }
@@ -101,7 +100,12 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         rvArtists.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         srlRoot.setColorSchemeResources(R.color.colorAccent);
-        srlRoot.setOnRefreshListener(this::loadData);
+        srlRoot.setOnRefreshListener(this::initLoader);
+    }
+
+    private void initLoader() {
+        getLoaderManager()
+                .initLoader(LOADER_ID, null, this).forceLoad();
     }
 
     private List<Artist> loadData() {
