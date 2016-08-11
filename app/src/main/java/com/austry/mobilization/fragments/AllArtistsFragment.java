@@ -6,9 +6,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +28,7 @@ import com.austry.mobilization.model.ArtistsProviderContract;
 import com.austry.mobilization.model.Cover;
 import com.austry.mobilization.net.ArtistsResponseCallback;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,10 +37,12 @@ import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 import static java.util.Arrays.asList;
 
 
-public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback, ArtistClickCallback {
+public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback, ArtistClickCallback,
+         LoaderManager.LoaderCallbacks<List<Artist>>{
 
     private static final String ARTIST_FRAGMENT_NAME = "artist_fragment";
     private static final String TAG = AllArtistsFragment.class.getName();
+    private static final int LOADER_ID = 123;
 
     private RecyclerView rvArtists;
     private SwipeRefreshLayout srlRoot;
@@ -60,8 +67,31 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         initViews(fragmentView);
         getActivity().setTitle(getString(R.string.app_name));
         setRefreshState(true);
-        loadData();
+        if(savedInstanceState == null) {
+            getLoaderManager()
+                    .initLoader(LOADER_ID, null, this).forceLoad();
+        }
         return fragmentView;
+    }
+
+    @Override
+    public Loader<List<Artist>> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<List<Artist>>(getContext()) {
+            @Override
+            public List<Artist> loadInBackground() {
+                return loadData();
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Artist>> loader, List<Artist> data) {
+        success(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<Artist>> loader) {
+
     }
 
     private void initViews(View fragmentView) {
@@ -74,14 +104,14 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         srlRoot.setOnRefreshListener(this::loadData);
     }
 
-    private void loadData() {
+    private List<Artist> loadData() {
         Cursor cursor = getActivity().getContentResolver().query(ArtistsProviderContract.CONTENT_URI,
                 COLUMNS_TO_REQUEST, null, null, null);
+        List<Artist> artists = new ArrayList<>();
         if (cursor != null && cursor.moveToFirst()) {
-            success(parseArtists(cursor));
-        }else{
-            error(resources.getString(R.string.error_msg_no_provider_found));
+            artists = parseArtists(cursor);
         }
+        return artists;
     }
 
     private List<Artist> parseArtists(@NonNull Cursor cursor) {
@@ -116,7 +146,6 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         rvArtists.setAdapter(animatedAdapter);
     }
 
-
     @Override
     public void error(String errorMessage) {
         setRefreshState(false);
@@ -130,7 +159,6 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
     @Override
     public void elementClick(Artist artist) {
         if(!srlRoot.isRefreshing()) {
-
             ArtistFragment artistFragment = new ArtistFragment();
 
             Bundle args = new Bundle();
@@ -143,4 +171,6 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
                     .commit();
         }
     }
+
+
 }

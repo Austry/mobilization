@@ -88,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addAllArtistsFragment() {
-
         Fragment fragment = new AllArtistsFragment();
         fragmentManager.beginTransaction()
                 .add(R.id.flFragmentContainer, fragment, fragment.getClass().getName())
