@@ -21,6 +21,7 @@
     <string name="yadnex_radio_button">Yadnex radio button</string>
     <string name="yandex_music_button">Yandex music button</string>
     <string name="notification_ticker">Time to rock!</string>
+    <string name="error_msg_no_provider_found">No provider found!</string>
 
     <plurals name="tracks">
         <item quantity="zero">нет песен</item>

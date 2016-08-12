@@ -1,62 +1,103 @@
 package com.austry.mobilization.fragments;
 
-import android.content.Context;
+import android.content.ContentResolver;
 import android.content.res.Resources;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.StringRequest;
 import com.austry.mobilization.Application;
 import com.austry.mobilization.R;
 import com.austry.mobilization.adapters.ArtistClickCallback;
 import com.austry.mobilization.adapters.ArtistsRecyclerAdapter;
 import com.austry.mobilization.model.Artist;
-import com.austry.mobilization.net.ArtistsErrorListener;
+import com.austry.mobilization.model.ArtistsProviderContract;
+import com.austry.mobilization.model.Cover;
 import com.austry.mobilization.net.ArtistsResponseCallback;
-import com.austry.mobilization.net.ArtistsResponseListener;
-import com.austry.mobilization.net.UTF8StringRequest;
+import com.austry.mobilization.observers.ArtistsObserver;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 
+import static java.util.Arrays.asList;
 
-public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback, ArtistClickCallback {
+
+
+public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback, ArtistClickCallback,
+         LoaderManager.LoaderCallbacks<List<Artist>>, ArtistsObserver.ArtistsChangedCallback {
 
     private static final String ARTIST_FRAGMENT_NAME = "artist_fragment";
-    private static final String LOG_TAG = AllArtistsFragment.class.getName();
-    private static final String ARTISTS_DATA_URL = "http://download.cdn.yandex.net/mobilization-2016/artists.json";
+    private static final String TAG = AllArtistsFragment.class.getName();
+    private static final int LOADER_ID = 123;
 
+    private Handler handler;
     private RecyclerView rvArtists;
     private SwipeRefreshLayout srlRoot;
-    private RequestQueue networkRequestsQueue;
     private Resources resources;
+    private static final String[] COLUMNS_TO_REQUEST = {
+            ArtistsProviderContract.ID,
+            ArtistsProviderContract.NAME,
+            ArtistsProviderContract.DESCRIPTION,
+            ArtistsProviderContract.LINK,
+            ArtistsProviderContract.GENRES,
+            ArtistsProviderContract.ALBUM,
+            ArtistsProviderContract.TRACKS,
+            ArtistsProviderContract.URL_BIG,
+            ArtistsProviderContract.URL_SMALL
+    };
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        networkRequestsQueue = Application.from(getContext()).getVolley().getRequestQueue();
         resources = getResources();
         View fragmentView = inflater.inflate(R.layout.fragment_all_artists, container, false);
         initViews(fragmentView);
         getActivity().setTitle(getString(R.string.app_name));
         setRefreshState(true);
-        loadData(false);
+        handler = new Handler(Looper.getMainLooper());
+        if(savedInstanceState == null) {
+            initLoader();
+        }
         return fragmentView;
+    }
+
+    @Override
+    public Loader<List<Artist>> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<List<Artist>>(getContext()) {
+            @Override
+            public List<Artist> loadInBackground() {
+                return loadData();
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Artist>> loader, List<Artist> data) {
+        success(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<Artist>> loader) {
+
     }
 
     private void initViews(View fragmentView) {
@@ -66,23 +107,49 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         rvArtists.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         srlRoot.setColorSchemeResources(R.color.colorAccent);
-        srlRoot.setOnRefreshListener(() -> loadData(true));
+        srlRoot.setOnRefreshListener(this::initLoader);
     }
 
-    private void loadData(boolean refreshCache) {
-        if (refreshCache) {
-            networkRequestsQueue.getCache().remove(ARTISTS_DATA_URL);
-        }
-        if (isOnline()) {
-            final StringRequest request =
-                    new UTF8StringRequest(Request.Method.GET, ARTISTS_DATA_URL,
-                            new ArtistsResponseListener(this, resources), new ArtistsErrorListener(this, resources));
-            request.setShouldCache(true);
-            networkRequestsQueue.add(request);
+    private void initLoader() {
+        getLoaderManager()
+                .initLoader(LOADER_ID, null, this).forceLoad();
 
-        } else {
-            error(getActivity().getString(R.string.network_unavailable_error));
+    }
+
+    private List<Artist> loadData() {
+        ContentResolver cr = getActivity().getContentResolver();
+        Cursor cursor = cr.query(ArtistsProviderContract.CONTENT_URI,
+                COLUMNS_TO_REQUEST, null, null, null);
+        List<Artist> artists = new ArrayList<>();
+        if (cursor != null && cursor.moveToFirst()) {
+            artists = parseArtists(cursor);
         }
+
+        cr.registerContentObserver(ArtistsProviderContract.CONTENT_URI, true, new ArtistsObserver(handler, this));
+        return artists;
+    }
+
+    private List<Artist> parseArtists(@NonNull Cursor cursor) {
+        List<Artist> result = new LinkedList<>();
+        do {
+            Artist newArtist = new Artist();
+            newArtist.setId(cursor.getLong(0));
+            newArtist.setName(cursor.getString(1));
+            newArtist.setDescription(cursor.getString(2));
+            newArtist.setLink(cursor.getString(3));
+            String genres = cursor.getString(4);
+            newArtist.setGenres(asList(genres.split(",")));
+            newArtist.setAlbums(cursor.getInt(5));
+            newArtist.setTracks(cursor.getInt(6));
+            Cover cover =new Cover();
+            cover.setBig(cursor.getString(7));
+            cover.setSmall(cursor.getString(8));
+            newArtist.setCover(cover);
+
+            result.add(newArtist);
+        } while (cursor.moveToNext());
+        cursor.close();
+        return result;
     }
 
     @Override
@@ -94,30 +161,15 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         rvArtists.setAdapter(animatedAdapter);
     }
 
-
     @Override
     public void error(String errorMessage) {
         setRefreshState(false);
         Toast.makeText(this.getActivity(), errorMessage, Toast.LENGTH_SHORT).show();
     }
 
-    //провеняет соединение с сетью
-    public boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-
-        return netInfo != null && netInfo.isConnectedOrConnecting();
-    }
-
-    private void setRefreshState(final boolean state) {
-        srlRoot.post(() -> srlRoot.setRefreshing(state));
-    }
-
     @Override
     public void elementClick(Artist artist) {
         if(!srlRoot.isRefreshing()) {
-
             ArtistFragment artistFragment = new ArtistFragment();
 
             Bundle args = new Bundle();
@@ -129,5 +181,14 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
                     .replace(R.id.flFragmentContainer, artistFragment, ARTIST_FRAGMENT_NAME)
                     .commit();
         }
+    }
+
+    @Override
+    public void notifyChanges() {
+        initLoader();
+    }
+
+    private void setRefreshState(final boolean state) {
+        srlRoot.post(() -> srlRoot.setRefreshing(state));
     }
 }
