@@ -1,8 +1,11 @@
 package com.austry.mobilization.fragments;
 
+import android.content.ContentResolver;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -27,6 +30,7 @@ import com.austry.mobilization.model.Artist;
 import com.austry.mobilization.model.ArtistsProviderContract;
 import com.austry.mobilization.model.Cover;
 import com.austry.mobilization.net.ArtistsResponseCallback;
+import com.austry.mobilization.observers.ArtistsObserver;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -37,13 +41,15 @@ import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
 import static java.util.Arrays.asList;
 
 
+
 public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback, ArtistClickCallback,
-         LoaderManager.LoaderCallbacks<List<Artist>>{
+         LoaderManager.LoaderCallbacks<List<Artist>>, ArtistsObserver.ArtistsChangedCallback {
 
     private static final String ARTIST_FRAGMENT_NAME = "artist_fragment";
     private static final String TAG = AllArtistsFragment.class.getName();
     private static final int LOADER_ID = 123;
 
+    private Handler handler;
     private RecyclerView rvArtists;
     private SwipeRefreshLayout srlRoot;
     private Resources resources;
@@ -67,6 +73,7 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         initViews(fragmentView);
         getActivity().setTitle(getString(R.string.app_name));
         setRefreshState(true);
+        handler = new Handler(Looper.getMainLooper());
         if(savedInstanceState == null) {
             initLoader();
         }
@@ -106,15 +113,19 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
     private void initLoader() {
         getLoaderManager()
                 .initLoader(LOADER_ID, null, this).forceLoad();
+
     }
 
     private List<Artist> loadData() {
-        Cursor cursor = getActivity().getContentResolver().query(ArtistsProviderContract.CONTENT_URI,
+        ContentResolver cr = getActivity().getContentResolver();
+        Cursor cursor = cr.query(ArtistsProviderContract.CONTENT_URI,
                 COLUMNS_TO_REQUEST, null, null, null);
         List<Artist> artists = new ArrayList<>();
         if (cursor != null && cursor.moveToFirst()) {
             artists = parseArtists(cursor);
         }
+
+        cr.registerContentObserver(ArtistsProviderContract.CONTENT_URI, true, new ArtistsObserver(handler, this));
         return artists;
     }
 
@@ -156,10 +167,6 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         Toast.makeText(this.getActivity(), errorMessage, Toast.LENGTH_SHORT).show();
     }
 
-    private void setRefreshState(final boolean state) {
-        srlRoot.post(() -> srlRoot.setRefreshing(state));
-    }
-
     @Override
     public void elementClick(Artist artist) {
         if(!srlRoot.isRefreshing()) {
@@ -176,5 +183,12 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         }
     }
 
+    @Override
+    public void notifyChanges() {
+        initLoader();
+    }
 
+    private void setRefreshState(final boolean state) {
+        srlRoot.post(() -> srlRoot.setRefreshing(state));
+    }
 }
