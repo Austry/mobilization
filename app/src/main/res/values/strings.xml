@@ -6,4 +6,38 @@
     <string name="main_activity_label">Исполнители</string>
     <string name="network_unavailable_error">Нет соединения с сетью!</string>
     <string name="mapping_error">Ошибка! Попробуйте позже!</string>
+    <string name="menu_item_about_title">О программе</string>
+    <string name="menu_item_feedback_title">Обратная связь</string>
+
+    <string name="about_fragment_title">О программе</string>
+    <string name="about_main_text">Приложение создано в рамках проекта \'Мобилизация\'!</string>
+    <string name="about_author">Автор : Илья Засимов</string>
+    <string name="feedback_email">iliazasimov@yandex.ru</string>
+    <string name="feedback_email_subject">Отзыв</string>
+    <string name="feedback_email_body">Крутотень!</string>
+    <string name="feedback_chooser_title">Отправить письмо...</string>
+    <string name="notification_title">Let\'s checkout the music!</string>
+    <string name="notification_image">Notification image</string>
+    <string name="yadnex_radio_button">Yadnex radio button</string>
+    <string name="yandex_music_button">Yandex music button</string>
+    <string name="notification_ticker">Time to rock!</string>
+
+    <plurals name="tracks">
+        <item quantity="zero">нет песен</item>
+        <item quantity="one">%d песня</item>
+        <item quantity="two">%d песни</item>
+        <item quantity="many">%d песен</item>
+        <item quantity="few">%d песни</item>
+        <item quantity="other">%d песен</item>
+    </plurals>
+
+    <plurals name="albums">
+        <item quantity="zero">нет альбомов</item>
+        <item quantity="one">%d альбом</item>
+        <item quantity="two">%d альбома</item>
+        <item quantity="few">%d альбома</item>
+        <item quantity="many">%d альбомов</item>
+        <item quantity="other">%d альбомов</item>
+    </plurals>
+
 </resources>

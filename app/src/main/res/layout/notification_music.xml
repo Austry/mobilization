@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="@android:dimen/notification_large_icon_width"
+        android:layout_height="@android:dimen/notification_large_icon_width"
+        android:layout_gravity="left|center_vertical"
+        android:contentDescription="@string/notification_image"
+        android:scaleType="fitCenter"
+        android:src="@mipmap/ic_launcher"
+        android:layout_centerVertical="true"/>
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:layout_gravity="center_vertical"
+        android:text="@string/notification_title"
+        android:textAppearance="?android:textAppearanceLarge"
+        android:layout_toEndOf="@+id/image"
+        android:layout_toRightOf="@+id/image"
+        android:layout_centerVertical="true"/>
+
+    <ImageButton
+        android:id="@+id/btnYaMusic"
+        android:layout_width="@android:dimen/notification_large_icon_width"
+        android:layout_height="@android:dimen/notification_large_icon_width"
+        android:background="@drawable/icon_ya_music"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="@dimen/notification_elements_margin"
+        android:layout_marginRight="@dimen/notification_elements_margin"
+        android:scaleType="fitCenter"
+        android:contentDescription="@string/yandex_music_button"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"/>
+
+    <ImageButton
+        android:id="@+id/btnYaRadio"
+        android:layout_width="@android:dimen/notification_large_icon_width"
+        android:layout_height="@android:dimen/notification_large_icon_width"
+        android:layout_marginLeft="@dimen/notification_elements_margin"
+        android:layout_marginRight="@dimen/notification_elements_margin"
+        android:background="@drawable/icon_ya_radio"
+        android:scaleType="fitCenter"
+        android:contentDescription="@string/yadnex_radio_button"
+        android:layout_gravity="center_vertical"
+        android:layout_toStartOf="@id/btnYaMusic"
+        android:layout_toLeftOf="@id/btnYaMusic"
+        android:layout_centerVertical="true" />
+
+</RelativeLayout>

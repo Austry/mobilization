@@ -1,26 +1,96 @@
 package com.austry.mobilization.activities;
 
-import android.app.FragmentTransaction;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.austry.mobilization.R;
+import com.austry.mobilization.fragments.AboutFragment;
 import com.austry.mobilization.fragments.AllArtistsFragment;
+import com.austry.mobilization.net.VolleyInstance;
+import com.austry.mobilization.receivers.HeadsetReceiver;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String MAIN_FRAGMENT_NAME = "main_fragment";
+    private final HeadsetReceiver headsetReceiver = new HeadsetReceiver();
+    private final String LOG_TAG = MainActivity.class.getName();
+
+    private FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        fragmentManager = getSupportFragmentManager();
 
-        if(savedInstanceState == null){
-            FragmentTransaction ft = getFragmentManager().beginTransaction();
-            ft.add(R.id.flFragmentContainer,new AllArtistsFragment(), MAIN_FRAGMENT_NAME);
-            ft.commit();
+        if (savedInstanceState == null) {
+            addAllArtistsFragment();
         }
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(headsetReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(headsetReceiver);
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menuItemAbout:
+                showAboutFragment();
+                break;
+            case R.id.menuItemFeedback:
+                sendFeedbackEmailIntent();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void sendFeedbackEmailIntent() {
+        Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts(
+                "mailto", getString(R.string.feedback_email), null));
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.feedback_email_subject));
+        emailIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.feedback_email_body));
+        startActivity(Intent.createChooser(emailIntent, getString(R.string.feedback_chooser_title)));
+    }
+
+    private void showAboutFragment() {
+        Fragment fragment = new AboutFragment();
+        Fragment currentFragment = fragmentManager.findFragmentById(R.id.flFragmentContainer);
+        if (currentFragment == null || !currentFragment.getClass().equals(fragment.getClass())) {
+            fragmentManager.beginTransaction()
+                    .addToBackStack(fragment.getClass().getName())
+                    .replace(R.id.flFragmentContainer, fragment, fragment.getClass().getName())
+                    .commit();
+        }
+    }
+
+    private void addAllArtistsFragment() {
+
+        Fragment fragment = new AllArtistsFragment();
+        fragmentManager.beginTransaction()
+                .add(R.id.flFragmentContainer, fragment, fragment.getClass().getName())
+                .commit();
     }
 }

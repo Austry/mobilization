@@ -1,11 +1,12 @@
 package com.austry.mobilization.fragments;
 
-import android.app.Fragment;
 import android.content.Context;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,37 +16,46 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
+import com.austry.mobilization.Application;
 import com.austry.mobilization.R;
+import com.austry.mobilization.adapters.ArtistClickCallback;
 import com.austry.mobilization.adapters.ArtistsRecyclerAdapter;
 import com.austry.mobilization.model.Artist;
 import com.austry.mobilization.net.ArtistsErrorListener;
 import com.austry.mobilization.net.ArtistsResponseCallback;
 import com.austry.mobilization.net.ArtistsResponseListener;
 import com.austry.mobilization.net.UTF8StringRequest;
-import com.austry.mobilization.net.VolleySingleton;
 
 import java.util.List;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
-import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 
 
-public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback {
+public class AllArtistsFragment extends Fragment implements ArtistsResponseCallback, ArtistClickCallback {
 
-    private static final String LOG_TAG = "AllArtistsFragment";
+    private static final String ARTIST_FRAGMENT_NAME = "artist_fragment";
+    private static final String LOG_TAG = AllArtistsFragment.class.getName();
     private static final String ARTISTS_DATA_URL = "http://download.cdn.yandex.net/mobilization-2016/artists.json";
 
     private RecyclerView rvArtists;
     private SwipeRefreshLayout srlRoot;
+    private RequestQueue networkRequestsQueue;
+    private Resources resources;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        networkRequestsQueue = Application.from(getContext()).getVolley().getRequestQueue();
+        resources = getResources();
         View fragmentView = inflater.inflate(R.layout.fragment_all_artists, container, false);
         initViews(fragmentView);
+        getActivity().setTitle(getString(R.string.app_name));
         setRefreshState(true);
-        loadData();
+        loadData(false);
         return fragmentView;
     }
 
@@ -56,21 +66,20 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
         rvArtists.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         srlRoot.setColorSchemeResources(R.color.colorAccent);
-        srlRoot.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadData();
-            }
-        });
+        srlRoot.setOnRefreshListener(() -> loadData(true));
     }
 
-    private void loadData() {
+    private void loadData(boolean refreshCache) {
+        if (refreshCache) {
+            networkRequestsQueue.getCache().remove(ARTISTS_DATA_URL);
+        }
         if (isOnline()) {
             final StringRequest request =
                     new UTF8StringRequest(Request.Method.GET, ARTISTS_DATA_URL,
-                            new ArtistsResponseListener(this), new ArtistsErrorListener(this));
+                            new ArtistsResponseListener(this, resources), new ArtistsErrorListener(this, resources));
+            request.setShouldCache(true);
+            networkRequestsQueue.add(request);
 
-            VolleySingleton.getInstance().getRequestQueue().add(request);
         } else {
             error(getActivity().getString(R.string.network_unavailable_error));
         }
@@ -79,7 +88,9 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
     @Override
     public void success(List<Artist> artists) {
         setRefreshState(false);
-        RecyclerView.Adapter animatedAdapter = new AlphaInAnimationAdapter(new ArtistsRecyclerAdapter(artists, getActivity()));
+        ImageLoader loader = ((Application) getActivity().getApplication()).getVolley().getImageLoader();
+        ArtistsRecyclerAdapter adapter = new ArtistsRecyclerAdapter(artists, resources, loader, this);
+        RecyclerView.Adapter animatedAdapter = new AlphaInAnimationAdapter(adapter);
         rvArtists.setAdapter(animatedAdapter);
     }
 
@@ -100,12 +111,23 @@ public class AllArtistsFragment extends Fragment implements ArtistsResponseCallb
     }
 
     private void setRefreshState(final boolean state) {
-        srlRoot.post(new Runnable() {
-            @Override
-            public void run() {
-                srlRoot.setRefreshing(state);
-            }
-        });
+        srlRoot.post(() -> srlRoot.setRefreshing(state));
     }
 
+    @Override
+    public void elementClick(Artist artist) {
+        if(!srlRoot.isRefreshing()) {
+
+            ArtistFragment artistFragment = new ArtistFragment();
+
+            Bundle args = new Bundle();
+            args.putSerializable(ArtistFragment.EXTRA_ARTIST, artist);
+            artistFragment.setArguments(args);
+
+            getFragmentManager().beginTransaction()
+                    .addToBackStack(ARTIST_FRAGMENT_NAME)
+                    .replace(R.id.flFragmentContainer, artistFragment, ARTIST_FRAGMENT_NAME)
+                    .commit();
+        }
+    }
 }
